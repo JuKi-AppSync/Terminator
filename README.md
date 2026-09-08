@@ -1,2 +1,0 @@
-# Terminator
-App für Terminfindung 
