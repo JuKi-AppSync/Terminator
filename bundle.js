@@ -57766,11 +57766,31 @@ var ICALmodule = {
 };
 
 // icsParser.js
+function isEventInFutureWindow(event) {
+  const now = /* @__PURE__ */ new Date();
+  const horizon = /* @__PURE__ */ new Date();
+  horizon.setMonth(horizon.getMonth() + 3);
+  const start = new Date(event.start);
+  const end = new Date(event.end);
+  if (!event.rrule) {
+    return end > now && start < horizon;
+  }
+  try {
+    const options = RRule.parseString(event.rrule);
+    options.dtstart = start;
+    const rule = new RRule(options);
+    const durationMs = end - start;
+    const searchStart = new Date(now.getTime() - durationMs);
+    return rule.between(searchStart, horizon, true).length > 0;
+  } catch {
+    return end > now && start < horizon;
+  }
+}
 function parseIcsToEvents(icsText) {
   const jcalData = ICALmodule.parse(icsText);
   const component = new ICALmodule.Component(jcalData);
   const vevents = component.getAllSubcomponents("vevent");
-  return vevents.map((vevent, index3) => {
+  const events = vevents.map((vevent, index3) => {
     const event = new ICALmodule.Event(vevent);
     const rruleProp = vevent.getFirstProperty("rrule");
     return {
@@ -57781,6 +57801,7 @@ function parseIcsToEvents(icsText) {
       rrule: rruleProp ? rruleProp.getFirstValue().toString() : null
     };
   });
+  return events.filter(isEventInFutureWindow);
 }
 
 // node_modules/@firebase/auth/dist/esm/index-CvXU3_1x.js
@@ -64314,7 +64335,9 @@ function wireEvents() {
     $2("settingsGroup").value = getLocalGroup() || "";
     showScreen("settings");
   });
-  $2("settingsBackBtn").addEventListener("click", () => showScreen("main"));
+  $2("settingsBackBtn").addEventListener("click", () => {
+    routeToInitialScreen();
+  });
   $2("settingsSaveBtn").addEventListener("click", () => {
     const mode = $2("settingsSyncMode").value;
     const cfg = getConfig();
@@ -64335,7 +64358,7 @@ function wireEvents() {
     saveConfig(cfg);
     if ($2("settingsName").value.trim()) setLocalUsername($2("settingsName").value.trim());
     if ($2("settingsGroup").value.trim()) setLocalGroup($2("settingsGroup").value.trim());
-    showScreen("main");
+    routeToInitialScreen();
   });
   $2("importBtn").addEventListener("click", () => $2("importFile").click());
   $2("importFile").addEventListener("change", (e2) => {
