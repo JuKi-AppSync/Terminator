@@ -64012,6 +64012,9 @@ function parseFirebaseConfigInput(text) {
 function wireEvents() {
   $2("setupSyncMode").addEventListener("change", (e2) => {
     toggleSyncFields(e2.target.value, "setupGitFields", "setupFirebaseFields");
+    if (e2.target.value === "firebase" && window.TERMINSYNC_FIREBASE_CONFIG && !$2("setupFirebaseConfig").value.trim()) {
+      $2("setupFirebaseConfig").value = JSON.stringify(window.TERMINSYNC_FIREBASE_CONFIG, null, 2);
+    }
   });
   $2("settingsSyncMode").addEventListener("change", (e2) => {
     toggleSyncFields(e2.target.value, "settingsGitFields", "settingsFirebaseFields");
