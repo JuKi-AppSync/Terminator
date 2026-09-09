@@ -1933,7 +1933,7 @@ var require_text_min = __commonJS({
       };
       scope.TextEncoder = scope.TextEncoder || v2;
       scope.TextDecoder = scope.TextDecoder || g;
-    })(typeof window !== "undefined" ? window : typeof window !== "undefined" ? window : exports);
+    })(typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : exports);
   }
 });
 
@@ -4368,7 +4368,7 @@ var require_available_typed_arrays = __commonJS({
   "node_modules/available-typed-arrays/index.js"(exports, module) {
     "use strict";
     var possibleNames = require_possible_typed_array_names();
-    var g = typeof globalThis === "undefined" ? window : globalThis;
+    var g = typeof globalThis === "undefined" ? global : globalThis;
     module.exports = function availableTypedArrays() {
       var out = [];
       for (var i2 = 0; i2 < possibleNames.length; i2++) {
@@ -4565,7 +4565,7 @@ var require_which_typed_array = __commonJS({
     var getProto = require_get_proto();
     var $toString = callBound("Object.prototype.toString");
     var hasToStringTag = require_shams2()();
-    var g = typeof globalThis === "undefined" ? window : globalThis;
+    var g = typeof globalThis === "undefined" ? global : globalThis;
     var typedArrays = availableTypedArrays();
     var $slice = callBound("String.prototype.slice");
     var $indexOf = callBound("Array.prototype.indexOf", true) || function indexOf(array, value) {
@@ -10287,10 +10287,10 @@ var require_diff3 = __commonJS({
   }
 });
 
-// src/app.js
+// app.js
 var import_buffer = __toESM(require_buffer());
 
-// src/config.js
+// config.js
 var STORAGE_KEY = "terminsync_config_v2";
 var DEFAULTS = {
   syncMode: "git",
@@ -10325,7 +10325,7 @@ function authCallback() {
   return () => ({ username: token, password: "x-oauth-basic" });
 }
 
-// src/userRegistry.js
+// userRegistry.js
 var USERNAME_KEY = "terminsync_username";
 var GROUP_KEY = "terminsync_group";
 function getLocalUsername() {
@@ -10344,11 +10344,16 @@ function setLocalGroup(group) {
   if (!trimmed) throw new Error("Gruppe darf nicht leer sein.");
   localStorage.setItem(GROUP_KEY, trimmed);
 }
+function clearLocalUser() {
+  localStorage.removeItem(USERNAME_KEY);
+  localStorage.removeItem(GROUP_KEY);
+}
 
-// src/gitSync.js
+// gitSync.js
 var gitSync_exports = {};
 __export(gitSync_exports, {
   REPO_DIR: () => REPO_DIR,
+  deleteFile: () => deleteFile,
   listFiles: () => listFiles2,
   pfs: () => pfs,
   pullOnStartup: () => pullOnStartup,
@@ -22018,7 +22023,7 @@ async function request({
 var index2 = { request };
 var web_default = index2;
 
-// src/gitSync.js
+// gitSync.js
 var fs = new import_lightning_fs.default("terminsync-fs");
 var pfs = fs.promises;
 var REPO_DIR = "/repo";
@@ -22109,6 +22114,18 @@ async function writeFile(path, content) {
   await mkdirp2(dir);
   await pfs.writeFile(fullPath, content, "utf8");
 }
+async function deleteFile(path) {
+  const fullPath = `${REPO_DIR}/${path}`;
+  try {
+    await pfs.unlink(fullPath);
+  } catch {
+  }
+  try {
+    await isomorphic_git_default.remove({ fs, dir: REPO_DIR, filepath: path });
+  } catch {
+  }
+  return { ok: true, reason: "Lokal entfernt. Nicht vergessen, mit der Cloud zu syncen (Push)." };
+}
 async function mkdirp2(dir) {
   const parts = dir.split("/").filter(Boolean);
   let current = "";
@@ -22121,9 +22138,10 @@ async function mkdirp2(dir) {
   }
 }
 
-// src/firebaseSync.js
+// firebaseSync.js
 var firebaseSync_exports = {};
 __export(firebaseSync_exports, {
+  deleteFile: () => deleteFile2,
   listFiles: () => listFiles3,
   pullOnStartup: () => pullOnStartup2,
   pushChanges: () => pushChanges2,
@@ -22390,8 +22408,8 @@ function getGlobal() {
   if (typeof window !== "undefined") {
     return window;
   }
-  if (typeof window !== "undefined") {
-    return window;
+  if (typeof global !== "undefined") {
+    return global;
   }
   throw new Error("Unable to locate global object.");
 }
@@ -22537,7 +22555,7 @@ function isNode() {
     return false;
   }
   try {
-    return Object.prototype.toString.call(window.process) === "[object process]";
+    return Object.prototype.toString.call(global.process) === "[object process]";
   } catch (e2) {
     return false;
   }
@@ -24094,7 +24112,7 @@ function registerCoreComponents(variant) {
 registerCoreComponents("");
 
 // node_modules/@firebase/webchannel-wrapper/dist/bloom-blob/esm/bloom_blob_es2018.js
-var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof window !== "undefined" ? window : typeof self !== "undefined" ? self : {};
+var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
 var bloom_blob_es2018 = {};
 var Integer;
 var Md5;
@@ -24524,7 +24542,7 @@ var Md5;
 }).apply(typeof commonjsGlobal !== "undefined" ? commonjsGlobal : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
 
 // node_modules/@firebase/webchannel-wrapper/dist/webchannel-blob/esm/webchannel_blob_es2018.js
-var commonjsGlobal2 = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof window !== "undefined" ? window : typeof self !== "undefined" ? self : {};
+var commonjsGlobal2 = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
 var webchannel_blob_es2018 = {};
 var XhrIo;
 var FetchXmlHttpFactory;
@@ -47198,6 +47216,9 @@ function setDoc(e2, t2, n2) {
   const r2 = ra(e2.firestore, da), s2 = __PRIVATE_applyFirestoreDataConverter(e2.converter, t2, n2), a = la(r2);
   return executeWrite(r2, [__PRIVATE_parseSetData(a, "setDoc", e2._key, s2, null !== e2.converter, n2).toMutation(e2._key, Precondition.none())]);
 }
+function deleteDoc(e2) {
+  return executeWrite(ra(e2.firestore, da), [new __PRIVATE_DeleteMutation(e2._key, Precondition.none())]);
+}
 function executeWrite(e2, t2) {
   const n2 = oa(e2);
   return __PRIVATE_firestoreClientWrite(n2, t2);
@@ -47240,7 +47261,7 @@ var name2 = "firebase";
 var version3 = "12.18.0";
 registerVersion(name2, version3, "app");
 
-// src/firebaseApp.js
+// firebaseApp.js
 var appInstance = null;
 function getFirebaseApp() {
   const { config } = getConfig().firebase;
@@ -47251,7 +47272,7 @@ function getFirebaseApp() {
   return appInstance;
 }
 
-// src/firebaseSync.js
+// firebaseSync.js
 var db = null;
 function ensureInit() {
   if (!db) {
@@ -47279,6 +47300,16 @@ async function writeFile2(path, content) {
     content,
     updatedAt: Date.now()
   });
+}
+async function deleteFile2(path) {
+  try {
+    const database = ensureInit();
+    await deleteDoc(doc(database, "terminsync_files", docIdForPath(path)));
+    return { ok: true };
+  } catch (e2) {
+    console.error("Firebase deleteFile fehlgeschlagen:", e2);
+    return { ok: false, reason: String(e2) };
+  }
 }
 async function listFiles3(dir) {
   try {
@@ -47312,7 +47343,7 @@ async function pushChanges2() {
   return { ok: true, reason: "Firebase synchronisiert automatisch - kein manueller Push n\xF6tig." };
 }
 
-// src/syncAdapter.js
+// syncAdapter.js
 function activeBackend() {
   return getConfig().syncMode === "firebase" ? firebaseSync_exports : gitSync_exports;
 }
@@ -47325,6 +47356,9 @@ function writeFile3(path, content) {
 function listFiles4(dir) {
   return activeBackend().listFiles(dir);
 }
+function deleteFile3(path) {
+  return activeBackend().deleteFile(path);
+}
 function pullOnStartup3(onProgress) {
   return activeBackend().pullOnStartup(onProgress);
 }
@@ -47332,7 +47366,7 @@ function pushChanges3(commitMessage, authorName) {
   return activeBackend().pushChanges(commitMessage, authorName);
 }
 
-// src/jsonStore.js
+// jsonStore.js
 function userCalendarPath(group, username) {
   return `data/groups/${group}/users/${username}.json`;
 }
@@ -47355,6 +47389,9 @@ async function addEventToUserCalendar(group, username, event) {
 async function removeEventFromUserCalendar(group, username, eventId) {
   const events = await loadUserCalendar(group, username);
   await saveUserCalendar(group, username, events.filter((e2) => e2.id !== eventId));
+}
+async function deleteUserCalendar(group, username) {
+  return deleteFile3(userCalendarPath(group, username));
 }
 async function listKnownUsers(group) {
   const files = await listFiles4(`data/groups/${group}/users`);
@@ -50246,7 +50283,7 @@ function rdatesToString(param, rdates, tzid) {
   return "".concat(header).concat(dateString);
 }
 
-// src/expand.js
+// expand.js
 function expandEvents(events, username, rangeStart, rangeEnd) {
   const blocks = [];
   for (const event of events) {
@@ -50274,7 +50311,7 @@ function expandEvents(events, username, rangeStart, rangeEnd) {
   return blocks.sort((a, b2) => a.start - b2.start);
 }
 
-// src/availability.js
+// availability.js
 var WEEKDAYS_DE = {
   montag: 0,
   dienstag: 1,
@@ -57728,7 +57765,7 @@ var ICALmodule = {
   helpers
 };
 
-// src/icsParser.js
+// icsParser.js
 function parseIcsToEvents(icsText) {
   const jcalData = ICALmodule.parse(icsText);
   const component = new ICALmodule.Component(jcalData);
@@ -61342,6 +61379,9 @@ function beforeAuthStateChanged(auth, callback, onAbort) {
 function onAuthStateChanged(auth, nextOrObserver, error, completed) {
   return getModularInstance(auth).onAuthStateChanged(nextOrObserver, error, completed);
 }
+function signOut(auth) {
+  return getModularInstance(auth).signOut();
+}
 function startEnrollPhoneMfa(auth, request2) {
   return _performApiRequest(auth, "POST", "/v2/accounts/mfaEnrollment:start", _addTidIfNecessary(auth, request2));
 }
@@ -63809,7 +63849,7 @@ registerAuth(
   /* ClientPlatform.BROWSER */
 );
 
-// src/firebaseAuth.js
+// firebaseAuth.js
 function authInstance() {
   return getAuth(getFirebaseApp());
 }
@@ -63836,8 +63876,90 @@ async function signIn(email, password) {
     return { ok: false, reason: String(e2.message || e2) };
   }
 }
+async function signOutFirebase() {
+  await signOut(authInstance());
+}
 
-// src/app.js
+// icsSubscriptions.js
+var STORAGE_KEY2 = "terminsync_ics_subscriptions";
+function readAll() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY2);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+function writeAll(list) {
+  localStorage.setItem(STORAGE_KEY2, JSON.stringify(list));
+}
+function listSubscriptions() {
+  return readAll();
+}
+function addSubscription(label, url) {
+  const trimmedLabel = label.trim();
+  const trimmedUrl = url.trim();
+  if (!trimmedLabel) throw new Error('Bitte einen Namen f\xFCr das Abo angeben (z.B. "Familienkalender").');
+  if (!trimmedUrl) throw new Error("Bitte einen Kalender-Link angeben.");
+  const list = readAll();
+  const sub = {
+    id: crypto.randomUUID ? crypto.randomUUID() : `sub-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    label: trimmedLabel,
+    url: trimmedUrl,
+    lastSyncedAt: null,
+    lastEventCount: null,
+    lastError: null
+  };
+  list.push(sub);
+  writeAll(list);
+  return sub;
+}
+function removeSubscription(id) {
+  writeAll(readAll().filter((s2) => s2.id !== id));
+}
+function updateSubscriptionMeta(id, patch) {
+  const list = readAll();
+  const idx = list.findIndex((s2) => s2.id === id);
+  if (idx === -1) return;
+  list[idx] = { ...list[idx], ...patch };
+  writeAll(list);
+}
+function sourceTagFor(subscriptionId) {
+  return `sub:${subscriptionId}`;
+}
+
+// icsFetch.js
+var PUBLIC_CORS_PROXY = "https://corsproxy.io/?url=";
+function normalizeUrl(url) {
+  return url.trim().replace(/^webcal:\/\//i, "https://");
+}
+async function fetchIcsText(rawUrl) {
+  const url = normalizeUrl(rawUrl);
+  try {
+    const res = await fetch(url, { headers: { Accept: "text/calendar,text/plain,*/*" } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    if (!looksLikeIcs(text)) throw new Error("Antwort sieht nicht nach einer .ics-Datei aus.");
+    return { text, viaProxy: false };
+  } catch (directError) {
+    try {
+      const proxied = await fetch(PUBLIC_CORS_PROXY + encodeURIComponent(url));
+      if (!proxied.ok) throw new Error(`HTTP ${proxied.status}`);
+      const text = await proxied.text();
+      if (!looksLikeIcs(text)) throw new Error("Antwort (\xFCber Proxy) sieht nicht nach einer .ics-Datei aus.");
+      return { text, viaProxy: true };
+    } catch (proxyError) {
+      throw new Error(
+        `Kalender-Link konnte nicht geladen werden (direkt: ${directError.message}; \xFCber Proxy: ${proxyError.message}). Pr\xFCfe den Link - bei Google Kalender braucht es die "Geheime Adresse im iCal-Format" aus den Kalendereinstellungen.`
+      );
+    }
+  }
+}
+function looksLikeIcs(text) {
+  return typeof text === "string" && text.includes("BEGIN:VCALENDAR");
+}
+
+// app.js
 window.Buffer = import_buffer.Buffer;
 var $2 = (id) => document.getElementById(id);
 var screens = ["setup", "firebase-login", "onboarding", "settings", "main"];
@@ -63877,6 +63999,7 @@ async function syncPull() {
   }
   await refreshUserList();
   await refreshMyEvents();
+  await refreshSubscriptionsList();
 }
 async function syncPush() {
   const username = getLocalUsername();
@@ -63976,6 +64099,92 @@ async function handleIcsImport(file) {
   setSyncStatus(`${events.length} Termine importiert f\xFCr ${username}. Nicht vergessen zu syncen!`, "ok");
   await refreshUserList();
   await refreshMyEvents();
+}
+function formatSyncedAt(ts) {
+  if (!ts) return "noch nie aktualisiert";
+  return "zuletzt aktualisiert: " + new Date(ts).toLocaleString("de-DE");
+}
+async function refreshSubscriptionsList() {
+  const subs = listSubscriptions();
+  const container = $2("subscriptionList");
+  if (!container) return;
+  container.innerHTML = "";
+  if (subs.length === 0) {
+    container.innerHTML = '<p class="hint">Noch keine Kalender-Abos hinterlegt.</p>';
+    return;
+  }
+  for (const sub of subs) {
+    const row = document.createElement("div");
+    row.className = "my-event";
+    const statusText = sub.lastError ? "Fehler: " + sub.lastError : `${sub.lastEventCount ?? 0} Termine \xB7 ${formatSyncedAt(sub.lastSyncedAt)}`;
+    row.innerHTML = `
+      <div class="my-event__info">
+        <div class="my-event__title">${sub.label}</div>
+        <div class="my-event__meta">${statusText}</div>
+      </div>
+      <button class="btn btn--ghost sub-refresh" data-id="${sub.id}" style="flex:none; min-height:auto; padding:0.4rem 0.6rem;">\u21BB</button>
+      <button class="my-event__delete" aria-label="Abo entfernen" data-id="${sub.id}">\u2715</button>
+    `;
+    container.appendChild(row);
+  }
+  container.querySelectorAll(".sub-refresh").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const sub = listSubscriptions().find((s2) => s2.id === btn.dataset.id);
+      if (sub) await refreshOneSubscription(sub);
+      await refreshSubscriptionsList();
+      await refreshMyEvents();
+      await refreshUserList();
+    });
+  });
+  container.querySelectorAll(".my-event__delete").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      removeSubscription(btn.dataset.id);
+      refreshSubscriptionsList();
+    });
+  });
+}
+async function refreshOneSubscription(sub) {
+  const group = getLocalGroup();
+  const username = getLocalUsername();
+  const tag2 = sourceTagFor(sub.id);
+  setSyncStatus(`Lade "${sub.label}" \u2026`);
+  try {
+    const { text } = await fetchIcsText(sub.url);
+    const events = parseIcsToEvents(text).map((e2) => ({ ...e2, source: tag2 }));
+    const existing = await loadUserCalendar(group, username);
+    const withoutThisSub = existing.filter((e2) => e2.source !== tag2);
+    await saveUserCalendar(group, username, withoutThisSub.concat(events));
+    updateSubscriptionMeta(sub.id, { lastSyncedAt: Date.now(), lastEventCount: events.length, lastError: null });
+    setSyncStatus(`"${sub.label}": ${events.length} Termine \xFCbernommen. Nicht vergessen zu syncen!`, "ok");
+  } catch (e2) {
+    updateSubscriptionMeta(sub.id, { lastError: e2.message });
+    setSyncStatus(`"${sub.label}" konnte nicht aktualisiert werden: ${e2.message}`, "error");
+  }
+}
+async function refreshAllSubscriptions() {
+  const subs = listSubscriptions();
+  for (const sub of subs) {
+    await refreshOneSubscription(sub);
+  }
+  await refreshSubscriptionsList();
+  await refreshMyEvents();
+  await refreshUserList();
+}
+async function handleAddSubscription() {
+  const label = $2("subLabel").value;
+  const url = $2("subUrl").value;
+  try {
+    const sub = addSubscription(label, url);
+    $2("subLabel").value = "";
+    $2("subUrl").value = "";
+    await refreshSubscriptionsList();
+    await refreshOneSubscription(sub);
+    await refreshSubscriptionsList();
+    await refreshMyEvents();
+    await refreshUserList();
+  } catch (e2) {
+    setSyncStatus(e2.message, "error");
+  }
 }
 async function handleFindSlots() {
   const group = getLocalGroup();
@@ -64117,6 +64326,41 @@ function wireEvents() {
   $2("importBtn").addEventListener("click", () => $2("importFile").click());
   $2("importFile").addEventListener("change", (e2) => {
     if (e2.target.files[0]) handleIcsImport(e2.target.files[0]);
+  });
+  $2("subAddBtn").addEventListener("click", handleAddSubscription);
+  $2("subRefreshAllBtn").addEventListener("click", refreshAllSubscriptions);
+  $2("logoutBtn").addEventListener("click", async () => {
+    if (!confirm("Wirklich abmelden? Deine Termine bleiben im Sync-Backend erhalten - beim n\xE4chsten Anmelden mit demselben Namen sind sie wieder da.")) {
+      return;
+    }
+    if (getConfig().syncMode === "firebase") {
+      try {
+        await signOutFirebase();
+      } catch {
+      }
+    }
+    clearLocalUser();
+    await routeToInitialScreen();
+  });
+  $2("deleteUserBtn").addEventListener("click", async () => {
+    const username = getLocalUsername();
+    const group = getLocalGroup();
+    if (!username || !group) return;
+    if (!confirm(`"${username}" (Gruppe "${group}") wirklich endg\xFCltig l\xF6schen? Alle eigenen Termine im Sync-Backend werden entfernt. Das kann nicht r\xFCckg\xE4ngig gemacht werden.`)) {
+      return;
+    }
+    const result = await deleteUserCalendar(group, username);
+    if (getConfig().syncMode === "firebase") {
+      try {
+        await signOutFirebase();
+      } catch {
+      }
+    }
+    clearLocalUser();
+    if (result && result.ok === false) {
+      setSyncStatus("L\xF6schen fehlgeschlagen: " + result.reason, "error");
+    }
+    await routeToInitialScreen();
   });
   $2("newEventRepeat").addEventListener("change", (e2) => {
     $2("newEventUntilWrap").classList.toggle("hidden", e2.target.value !== "weekly");

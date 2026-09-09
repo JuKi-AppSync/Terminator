@@ -115,6 +115,13 @@
         <button id="settingsSaveBtn" class="btn btn--primary">Speichern</button>
         <button id="settingsBackBtn" class="btn btn--ghost">Zurück</button>
       </div>
+
+      <h2>Konto</h2>
+      <p class="hint">Abmelden entfernt nur deinen Namen aus diesem Browser - deine Termine bleiben im Sync-Backend erhalten. Löschen entfernt deinen Kalender dort endgültig.</p>
+      <div class="btn-row">
+        <button id="logoutBtn" class="btn btn--ghost">Abmelden</button>
+        <button id="deleteUserBtn" class="btn btn--ghost" style="color:var(--danger); border-color:var(--danger);">Nutzer löschen</button>
+      </div>
     </section>
 
     <!-- Hauptscreen -->
@@ -123,9 +130,27 @@
       <div id="syncStatus" class="sync-status">–</div>
 
       <div class="btn-row">
-        <button id="importBtn" class="btn btn--secondary">Kalender importieren</button>
+        <button id="importBtn" class="btn btn--secondary">.ics-Datei importieren</button>
         <input id="importFile" type="file" accept=".ics" class="hidden" />
         <button id="pushBtn" class="btn btn--secondary">Mit Cloud syncen</button>
+      </div>
+
+      <h2>Kalender abonnieren</h2>
+      <p class="hint">Statt jedes Mal eine .ics-Datei zu exportieren: Kalender-Link einmal hinterlegen (z.B. Google Kalender „Geheime Adresse im iCal-Format“, ein freigegebener Familienkalender, iCloud-Freigabelink) - Termine werden per Klick neu abgerufen.</p>
+      <div class="field-row">
+        <label>Name
+          <input id="subLabel" type="text" placeholder="z.B. Familienkalender" />
+        </label>
+        <label>Kalender-Link (.ics-URL)
+          <input id="subUrl" type="url" placeholder="https://calendar.google.com/.../basic.ics" />
+        </label>
+      </div>
+      <div class="btn-row">
+        <button id="subAddBtn" class="btn btn--secondary">Abo hinzufügen</button>
+        <button id="subRefreshAllBtn" class="btn btn--ghost">Alle aktualisieren</button>
+      </div>
+      <div id="subscriptionList" class="my-events">
+        <p class="hint">Noch keine Kalender-Abos hinterlegt.</p>
       </div>
 
       <h2>Eigenen Termin anlegen</h2>
