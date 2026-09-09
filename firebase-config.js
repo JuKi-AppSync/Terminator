@@ -10,8 +10,8 @@
 // ersten Start wie bisher manuell ab.
 
 window.TERMINSYNC_FIREBASE_CONFIG = {
-  apiKey: "DEIN_API_KEY",
-  authDomain: "DEIN_PROJEKT.firebaseapp.com",
-  projectId: "DEIN_PROJEKT",
-  appId: "DEINE_APP_ID",
+  apiKey: "AIzaSyCfLzcmCpnpKku8BKYved6G24Mq4TVyYAc",
+  authDomain: "jkterminsync.firebaseapp.com",
+  projectId: "jkterminsync",
+  appId: "1:341075312488:web:f1d066e7e8e2df7b0ae0dd",
 };
