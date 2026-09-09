@@ -19,16 +19,34 @@
 
   <main id="app" class="app">
 
-    <!-- Ersteinrichtung: Repo-Verbindung -->
+    <!-- Ersteinrichtung: Sync-Backend wählen -->
     <section id="screen-setup" class="screen hidden">
-      <h2>Mit Kalender-Repo verbinden</h2>
-      <p class="hint">Trag das Git-Repo ein, in dem eure Termine liegen. Ein Teammitglied legt es einmal an, alle anderen verbinden sich mit denselben Daten.</p>
-      <label>Repo-URL
-        <input id="setupRemoteUrl" type="url" placeholder="https://github.com/team/termine.git" />
+      <h2>Wie sollen die Termine synchronisiert werden?</h2>
+      <p class="hint">Ein Teammitglied richtet das einmal ein, alle anderen verbinden sich mit denselben Zugangsdaten.</p>
+
+      <label>Sync-Methode
+        <select id="setupSyncMode">
+          <option value="git">Privates Git-Repo</option>
+          <option value="firebase">Firebase (Firestore)</option>
+        </select>
       </label>
-      <label>Access Token
-        <input id="setupToken" type="password" placeholder="ghp_..." />
-      </label>
+
+      <div id="setupGitFields">
+        <label>Repo-URL
+          <input id="setupRemoteUrl" type="url" placeholder="https://github.com/team/termine.git" />
+        </label>
+        <label>Access Token
+          <input id="setupToken" type="password" placeholder="ghp_..." />
+        </label>
+      </div>
+
+      <div id="setupFirebaseFields" class="hidden">
+        <label>Firebase-Konfiguration
+          <textarea id="setupFirebaseConfig" rows="6" placeholder='{ "apiKey": "...", "authDomain": "...", "projectId": "...", "appId": "..." }'></textarea>
+        </label>
+        <p class="hint">Aus der Firebase-Konsole: Projekteinstellungen → "SDK-Setup und Konfiguration" → Config kopieren und hier einfügen.</p>
+      </div>
+
       <button id="setupSaveBtn" class="btn btn--primary">Verbinden</button>
     </section>
 
@@ -45,12 +63,29 @@
     <!-- Einstellungen -->
     <section id="screen-settings" class="screen hidden">
       <h2>Einstellungen</h2>
-      <label>Repo-URL
-        <input id="settingsRemoteUrl" type="url" />
+
+      <label>Sync-Methode
+        <select id="settingsSyncMode">
+          <option value="git">Privates Git-Repo</option>
+          <option value="firebase">Firebase (Firestore)</option>
+        </select>
       </label>
-      <label>Access Token
-        <input id="settingsToken" type="password" />
-      </label>
+
+      <div id="settingsGitFields">
+        <label>Repo-URL
+          <input id="settingsRemoteUrl" type="url" />
+        </label>
+        <label>Access Token
+          <input id="settingsToken" type="password" />
+        </label>
+      </div>
+
+      <div id="settingsFirebaseFields" class="hidden">
+        <label>Firebase-Konfiguration
+          <textarea id="settingsFirebaseConfig" rows="6"></textarea>
+        </label>
+      </div>
+
       <label>Dein Name
         <input id="settingsName" type="text" />
       </label>
@@ -69,6 +104,39 @@
         <button id="importBtn" class="btn btn--secondary">Kalender importieren</button>
         <input id="importFile" type="file" accept=".ics" class="hidden" />
         <button id="pushBtn" class="btn btn--secondary">Mit Cloud syncen</button>
+      </div>
+
+      <h2>Eigenen Termin anlegen</h2>
+      <label>Titel
+        <input id="newEventTitle" type="text" placeholder="z.B. Robocup Training" />
+      </label>
+      <div class="field-row">
+        <label>Datum
+          <input id="newEventDate" type="date" />
+        </label>
+        <label>Wiederholung
+          <select id="newEventRepeat">
+            <option value="none">Einmalig</option>
+            <option value="weekly">Wöchentlich</option>
+          </select>
+        </label>
+      </div>
+      <div class="field-row">
+        <label>Startzeit
+          <input id="newEventStart" type="time" value="18:00" />
+        </label>
+        <label>Endzeit
+          <input id="newEventEnd" type="time" value="19:00" />
+        </label>
+      </div>
+      <label id="newEventUntilWrap" class="hidden">Wiederholen bis (optional)
+        <input id="newEventUntil" type="date" />
+      </label>
+      <button id="addEventBtn" class="btn btn--secondary" style="width:100%; margin-bottom:1.2rem;">Termin hinzufügen</button>
+
+      <h2>Meine Termine</h2>
+      <div id="myEvents" class="my-events">
+        <p class="hint">Noch keine eigenen Termine angelegt.</p>
       </div>
 
       <h2>Gemeinsamen Termin finden</h2>

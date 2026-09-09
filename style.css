@@ -71,7 +71,7 @@ label {
   margin-bottom: 0.9rem;
 }
 
-input, select {
+input, select, textarea {
   display: block;
   width: 100%;
   margin-top: 0.35rem;
@@ -83,7 +83,8 @@ input, select {
   border: 1px solid var(--line);
   border-radius: var(--radius);
 }
-input:focus, select:focus, button:focus-visible {
+textarea { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; resize: vertical; }
+input:focus, select:focus, textarea:focus, button:focus-visible {
   outline: 2px solid var(--amber);
   outline-offset: 1px;
 }
@@ -164,4 +165,29 @@ input:focus, select:focus, button:focus-visible {
 .results .empty {
   color: var(--ink-soft);
   font-size: 0.9rem;
+}
+
+.my-events { margin-bottom: 0.4rem; }
+.my-event {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.55rem 0.7rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+.my-event__info { flex: 1; }
+.my-event__title { font-weight: 600; }
+.my-event__meta { color: var(--ink-soft); font-size: 0.82rem; }
+.my-event__delete {
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  line-height: 1;
 }
