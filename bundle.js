@@ -63929,31 +63929,45 @@ function sourceTagFor(subscriptionId) {
 }
 
 // icsFetch.js
-var PUBLIC_CORS_PROXY = "https://corsproxy.io/?url=";
+var PUBLIC_CORS_PROXIES = [
+  // corsproxy.io verlangt inzwischen einen (kostenpflichtigen/registrierten) API-Key
+  // im Query-Parameter - ohne Key liefert er HTTP 401. Daher hier nicht mehr an erster
+  // Stelle, sondern mehrere key-lose Alternativen der Reihe nach probieren.
+  (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+  (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+  (url) => `https://thingproxy.freeboard.io/fetch/${url}`
+];
 function normalizeUrl(url) {
   return url.trim().replace(/^webcal:\/\//i, "https://");
 }
 async function fetchIcsText(rawUrl) {
   const url = normalizeUrl(rawUrl);
+  let directError;
   try {
     const res = await fetch(url, { headers: { Accept: "text/calendar,text/plain,*/*" } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const text = await res.text();
     if (!looksLikeIcs(text)) throw new Error("Antwort sieht nicht nach einer .ics-Datei aus.");
     return { text, viaProxy: false };
-  } catch (directError) {
+  } catch (e2) {
+    directError = e2;
+  }
+  const proxyErrors = [];
+  for (const buildProxyUrl of PUBLIC_CORS_PROXIES) {
     try {
-      const proxied = await fetch(PUBLIC_CORS_PROXY + encodeURIComponent(url));
+      const proxied = await fetch(buildProxyUrl(url));
       if (!proxied.ok) throw new Error(`HTTP ${proxied.status}`);
       const text = await proxied.text();
-      if (!looksLikeIcs(text)) throw new Error("Antwort (\xFCber Proxy) sieht nicht nach einer .ics-Datei aus.");
+      if (!looksLikeIcs(text)) throw new Error("Antwort sieht nicht nach einer .ics-Datei aus.");
       return { text, viaProxy: true };
     } catch (proxyError) {
-      throw new Error(
-        `Kalender-Link konnte nicht geladen werden (direkt: ${directError.message}; \xFCber Proxy: ${proxyError.message}). Pr\xFCfe den Link - bei Google Kalender braucht es die "Geheime Adresse im iCal-Format" aus den Kalendereinstellungen.`
-      );
+      proxyErrors.push(proxyError.message);
     }
   }
+  throw new Error(
+    `Kalender-Link konnte nicht geladen werden (direkt: ${directError.message}; \xFCber Proxys: ${proxyErrors.join(" | ")}). Pr\xFCfe den Link - bei Google Kalender braucht es die "Geheime Adresse im iCal-Format" aus den Kalendereinstellungen.`
+  );
 }
 function looksLikeIcs(text) {
   return typeof text === "string" && text.includes("BEGIN:VCALENDAR");
