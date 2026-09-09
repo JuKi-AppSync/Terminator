@@ -50,6 +50,20 @@
       <button id="setupSaveBtn" class="btn btn--primary">Verbinden</button>
     </section>
 
+    <!-- Firebase-Login (nur im Firebase-Modus) -->
+    <section id="screen-firebase-login" class="screen hidden">
+      <h2>Team-Login</h2>
+      <p class="hint">Nur mit gültigen Zugangsdaten (die ihr im Team festgelegt habt) kommt man an die Termine – so kann nicht jeder mit dem Link mitlesen.</p>
+      <label>E-Mail
+        <input id="fbLoginEmail" type="email" placeholder="team@beispiel.de" />
+      </label>
+      <label>Passwort
+        <input id="fbLoginPassword" type="password" />
+      </label>
+      <button id="fbLoginBtn" class="btn btn--primary">Anmelden</button>
+      <p id="fbLoginError" class="hint" style="color:#b3462c;"></p>
+    </section>
+
     <!-- Onboarding: Username -->
     <section id="screen-onboarding" class="screen hidden">
       <h2>Wie sollen wir dich nennen?</h2>
