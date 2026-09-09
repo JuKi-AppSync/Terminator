@@ -46,6 +46,7 @@
         </label>
         <p class="hint">Aus der Firebase-Konsole: Projekteinstellungen → "SDK-Setup und Konfiguration" → Config kopieren und hier einfügen.</p>
       </div>
+      <p id="setupFirebasePreconfigured" class="hint hidden">Firebase ist für diese App bereits vorkonfiguriert – kein manuelles Einfügen nötig.</p>
 
       <button id="setupSaveBtn" class="btn btn--primary">Verbinden</button>
     </section>
@@ -64,13 +65,17 @@
       <p id="fbLoginError" class="hint" style="color:#b3462c;"></p>
     </section>
 
-    <!-- Onboarding: Username -->
+    <!-- Onboarding: Username + Gruppe -->
     <section id="screen-onboarding" class="screen hidden">
       <h2>Wie sollen wir dich nennen?</h2>
       <p class="hint">Dieser Name identifiziert deinen Kalender im Team. Kein Passwort nötig.</p>
       <label>Dein Name
         <input id="onboardingName" type="text" placeholder="z.B. alice" />
       </label>
+      <label>Gruppe/Team
+        <input id="onboardingGroup" type="text" placeholder="z.B. robocup-team-1" />
+      </label>
+      <p class="hint">Nur Leute mit demselben Gruppennamen sehen sich gegenseitig in der Teilnehmerliste. Sprich den Namen einmal im Team ab.</p>
       <button id="onboardingSaveBtn" class="btn btn--primary">Loslegen</button>
     </section>
 
@@ -102,6 +107,9 @@
 
       <label>Dein Name
         <input id="settingsName" type="text" />
+      </label>
+      <label>Gruppe/Team
+        <input id="settingsGroup" type="text" />
       </label>
       <div class="btn-row">
         <button id="settingsSaveBtn" class="btn btn--primary">Speichern</button>

@@ -10326,14 +10326,23 @@ function authCallback() {
 }
 
 // src/userRegistry.js
-var KEY = "terminsync_username";
+var USERNAME_KEY = "terminsync_username";
+var GROUP_KEY = "terminsync_group";
 function getLocalUsername() {
-  return localStorage.getItem(KEY);
+  return localStorage.getItem(USERNAME_KEY);
 }
 function setLocalUsername(username) {
   const trimmed = username.trim();
   if (!trimmed) throw new Error("Username darf nicht leer sein.");
-  localStorage.setItem(KEY, trimmed);
+  localStorage.setItem(USERNAME_KEY, trimmed);
+}
+function getLocalGroup() {
+  return localStorage.getItem(GROUP_KEY);
+}
+function setLocalGroup(group) {
+  const trimmed = group.trim();
+  if (!trimmed) throw new Error("Gruppe darf nicht leer sein.");
+  localStorage.setItem(GROUP_KEY, trimmed);
 }
 
 // src/gitSync.js
@@ -47324,31 +47333,31 @@ function pushChanges3(commitMessage, authorName) {
 }
 
 // src/jsonStore.js
-function userCalendarPath(username) {
-  return `data/users/${username}.json`;
+function userCalendarPath(group, username) {
+  return `data/groups/${group}/users/${username}.json`;
 }
-async function loadUserCalendar(username) {
-  const raw = await readFile3(userCalendarPath(username));
+async function loadUserCalendar(group, username) {
+  const raw = await readFile3(userCalendarPath(group, username));
   if (!raw) return [];
   const data = JSON.parse(raw);
   return data.events || [];
 }
-async function saveUserCalendar(username, events) {
+async function saveUserCalendar(group, username, events) {
   const sorted = [...events].sort((a, b2) => a.id.localeCompare(b2.id));
-  const data = { user: username, events: sorted };
-  await writeFile3(userCalendarPath(username), JSON.stringify(data, null, 2) + "\n");
+  const data = { user: username, group, events: sorted };
+  await writeFile3(userCalendarPath(group, username), JSON.stringify(data, null, 2) + "\n");
 }
-async function addEventToUserCalendar(username, event) {
-  const events = await loadUserCalendar(username);
+async function addEventToUserCalendar(group, username, event) {
+  const events = await loadUserCalendar(group, username);
   events.push(event);
-  await saveUserCalendar(username, events);
+  await saveUserCalendar(group, username, events);
 }
-async function removeEventFromUserCalendar(username, eventId) {
-  const events = await loadUserCalendar(username);
-  await saveUserCalendar(username, events.filter((e2) => e2.id !== eventId));
+async function removeEventFromUserCalendar(group, username, eventId) {
+  const events = await loadUserCalendar(group, username);
+  await saveUserCalendar(group, username, events.filter((e2) => e2.id !== eventId));
 }
-async function listKnownUsers() {
-  const files = await listFiles4("data/users");
+async function listKnownUsers(group) {
+  const files = await listFiles4(`data/groups/${group}/users`);
   return files.filter((f) => f.endsWith(".json")).map((f) => f.replace(/\.json$/, "")).sort();
 }
 
@@ -63843,11 +63852,12 @@ function setSyncStatus(text, state) {
   el.dataset.state = state || "";
 }
 async function refreshUserList() {
-  const users = await listKnownUsers();
+  const group = getLocalGroup();
+  const users = await listKnownUsers(group);
   const container = $2("userList");
   container.innerHTML = "";
   if (users.length === 0) {
-    container.innerHTML = '<p class="hint">Noch keine Teilnehmer gefunden \u2013 erst synchronisieren.</p>';
+    container.innerHTML = '<p class="hint">Noch keine Teilnehmer in dieser Gruppe gefunden \u2013 erst synchronisieren.</p>';
     return;
   }
   for (const username of users) {
@@ -63879,8 +63889,9 @@ async function syncPush() {
   }
 }
 async function refreshMyEvents() {
+  const group = getLocalGroup();
   const username = getLocalUsername();
-  const events = await loadUserCalendar(username);
+  const events = await loadUserCalendar(group, username);
   const container = $2("myEvents");
   container.innerHTML = "";
   if (events.length === 0) {
@@ -63907,7 +63918,7 @@ async function refreshMyEvents() {
   }
   container.querySelectorAll(".my-event__delete").forEach((btn) => {
     btn.addEventListener("click", async () => {
-      await removeEventFromUserCalendar(username, btn.dataset.id);
+      await removeEventFromUserCalendar(group, username, btn.dataset.id);
       await refreshMyEvents();
     });
   });
@@ -63945,7 +63956,7 @@ async function handleAddEvent() {
     end: end.toISOString(),
     rrule
   };
-  await addEventToUserCalendar(getLocalUsername(), event);
+  await addEventToUserCalendar(getLocalGroup(), getLocalUsername(), event);
   setSyncStatus("Termin lokal gespeichert. Nicht vergessen zu syncen!", "ok");
   $2("newEventTitle").value = "";
   $2("newEventDate").value = "";
@@ -63956,16 +63967,18 @@ async function handleAddEvent() {
   await refreshUserList();
 }
 async function handleIcsImport(file) {
+  const group = getLocalGroup();
   const username = getLocalUsername();
   const text = await file.text();
   const events = parseIcsToEvents(text);
-  const existing = await loadUserCalendar(username);
-  await saveUserCalendar(username, existing.concat(events));
+  const existing = await loadUserCalendar(group, username);
+  await saveUserCalendar(group, username, existing.concat(events));
   setSyncStatus(`${events.length} Termine importiert f\xFCr ${username}. Nicht vergessen zu syncen!`, "ok");
   await refreshUserList();
   await refreshMyEvents();
 }
 async function handleFindSlots() {
+  const group = getLocalGroup();
   const weekday = parseWeekday2($2("weekdaySelect").value);
   const fromDate = new Date($2("fromDate").value);
   const toDate = new Date($2("toDate").value);
@@ -63986,7 +63999,7 @@ async function handleFindSlots() {
   rangeEndDt.setHours(23, 59, 59, 999);
   let allBusy = [];
   for (const username of selectedUsers) {
-    const events = await loadUserCalendar(username);
+    const events = await loadUserCalendar(group, username);
     allBusy = allBusy.concat(expandEvents(events, username, rangeStartDt, rangeEndDt));
   }
   const slots = findCommonFreeSlots(allBusy, weekday, fromDate, toDate, startTime, endTime);
@@ -63998,7 +64011,7 @@ async function handleFindSlots() {
 }
 function toggleSyncFields(mode, gitFieldsId, firebaseFieldsId) {
   $2(gitFieldsId).classList.toggle("hidden", mode !== "git");
-  $2(firebaseFieldsId).classList.toggle("hidden", mode !== "firebase");
+  $2(firebaseFieldsId).classList.toggle("hidden", mode !== "firebase" || Boolean(window.TERMINSYNC_FIREBASE_CONFIG));
 }
 function parseFirebaseConfigInput(text) {
   const trimmed = text.trim();
@@ -64012,9 +64025,7 @@ function parseFirebaseConfigInput(text) {
 function wireEvents() {
   $2("setupSyncMode").addEventListener("change", (e2) => {
     toggleSyncFields(e2.target.value, "setupGitFields", "setupFirebaseFields");
-    if (e2.target.value === "firebase" && window.TERMINSYNC_FIREBASE_CONFIG && !$2("setupFirebaseConfig").value.trim()) {
-      $2("setupFirebaseConfig").value = JSON.stringify(window.TERMINSYNC_FIREBASE_CONFIG, null, 2);
-    }
+    $2("setupFirebasePreconfigured").classList.toggle("hidden", !(e2.target.value === "firebase" && window.TERMINSYNC_FIREBASE_CONFIG));
   });
   $2("settingsSyncMode").addEventListener("change", (e2) => {
     toggleSyncFields(e2.target.value, "settingsGitFields", "settingsFirebaseFields");
@@ -64028,6 +64039,8 @@ function wireEvents() {
       const token = $2("setupToken").value.trim();
       if (!remoteUrl || !token) return;
       cfg.git = { ...cfg.git, remoteUrl, token };
+    } else if (window.TERMINSYNC_FIREBASE_CONFIG) {
+      cfg.firebase = { config: window.TERMINSYNC_FIREBASE_CONFIG };
     } else {
       try {
         const parsed = parseFirebaseConfigInput($2("setupFirebaseConfig").value);
@@ -64046,8 +64059,13 @@ function wireEvents() {
   });
   $2("onboardingSaveBtn").addEventListener("click", async () => {
     const name4 = $2("onboardingName").value.trim();
-    if (!name4) return;
+    const group = $2("onboardingGroup").value.trim();
+    if (!name4 || !group) {
+      setSyncStatus("Bitte Name und Gruppe angeben.", "error");
+      return;
+    }
     setLocalUsername(name4);
+    setLocalGroup(group);
     await routeToInitialScreen();
   });
   $2("fbLoginBtn").addEventListener("click", async () => {
@@ -64070,6 +64088,7 @@ function wireEvents() {
     $2("settingsToken").value = cfg.git.token || "";
     $2("settingsFirebaseConfig").value = cfg.firebase.config ? JSON.stringify(cfg.firebase.config, null, 2) : "";
     $2("settingsName").value = getLocalUsername() || "";
+    $2("settingsGroup").value = getLocalGroup() || "";
     showScreen("settings");
   });
   $2("settingsBackBtn").addEventListener("click", () => showScreen("main"));
@@ -64079,6 +64098,8 @@ function wireEvents() {
     cfg.syncMode = mode;
     if (mode === "git") {
       cfg.git = { ...cfg.git, remoteUrl: $2("settingsRemoteUrl").value.trim(), token: $2("settingsToken").value.trim() };
+    } else if (window.TERMINSYNC_FIREBASE_CONFIG) {
+      cfg.firebase = { config: window.TERMINSYNC_FIREBASE_CONFIG };
     } else {
       try {
         const parsed = parseFirebaseConfigInput($2("settingsFirebaseConfig").value);
@@ -64090,6 +64111,7 @@ function wireEvents() {
     }
     saveConfig(cfg);
     if ($2("settingsName").value.trim()) setLocalUsername($2("settingsName").value.trim());
+    if ($2("settingsGroup").value.trim()) setLocalGroup($2("settingsGroup").value.trim());
     showScreen("main");
   });
   $2("importBtn").addEventListener("click", () => $2("importFile").click());
@@ -64115,7 +64137,7 @@ async function routeToInitialScreen() {
       return;
     }
   }
-  if (!getLocalUsername()) {
+  if (!getLocalUsername() || !getLocalGroup()) {
     showScreen("onboarding");
     return;
   }
